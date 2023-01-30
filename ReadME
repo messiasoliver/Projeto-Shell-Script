@@ -1,0 +1,1 @@
+Lembre-se de tornar o arquivo executável com o comando chmod +x <nome-do-arquivo.sh> e de adicioná-lo ao crontab (crontab -e) para que seja executado automaticamente.
