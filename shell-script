@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Função para fazer backup do banco de dados e da pasta raiz do NGinX
+function backup {
+  # Verifica se o serviço do Postgres está rodando, iniciando caso contrário
+  if pgrep postgres > /dev/null
+  then
+    echo "Postgres está rodando."
+  else
+    service postgresql start
+  fi
+
+  # Faz o backup do banco de dados
+  pg_dumpall > /backups/database_backup.sql
+
+  # Faz o backup da pasta raiz do NGinX
+  tar -czf /backups/nginx_backup.tar.gz /var/www/html
+
+  # Verifica se existe mais de 5 backups na pasta
+  if [ $(ls /backups | wc -l) -gt 5 ]
+  then
+    # Remove o quinto arquivo mais antigo
+    ls -t /backups | tail -n +6 | xargs rm
+  fi
+}
+
+# Executa o backup a meia noite todos os dias
+0 0 * * * backup
+
+# Atualiza os pacotes do Ubuntu
+apt-get update && apt-get upgrade -y
+
+# Verifica se o Nginx está instalado, instalando caso contrário
+if dpkg -l | grep nginx > /dev/null
+then
+  echo "Nginx já está instalado."
+else
+  apt-get install -y nginx
+fi
